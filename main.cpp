@@ -84,17 +84,22 @@ int main(int argc, char *argv[])
 
     std::cout << "Dimensions: " << nrows << ", " << ncolumns << "\n";
 
-    auto start = std::chrono::high_resolution_clock::now();
 
-    // Heliostat field layout
+    std::cout << "Computing annual heliostat efficiencies... \n";
+    auto start = std::chrono::high_resolution_clock::now();
 
     hypl::IdealEfficiencyMap ideal_efficiency_map(environment, boundaries, receivers, nrows, ncolumns);    
     ideal_efficiency_map.EvaluateAnnualEfficiencies();
 
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << duration.count() << std::endl;
+
+    std::cout << "Writing binary output file... \n";   
+    start = std::chrono::high_resolution_clock::now();
 
     outputFile.write( (char *) &ideal_efficiency_map.nrows(), sizeof(int));
     outputFile.write( (char *) &ideal_efficiency_map.ncolumns(), sizeof(int));
-
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().xmin(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().xmax(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymin(), sizeof(double));
@@ -107,12 +112,11 @@ int main(int argc, char *argv[])
         double annual_ideal_efficiency = element->annual_ideal_efficiency();
         outputFile.write((char *) &annual_ideal_efficiency, sizeof(double));
     }
- //   outputFile << ss.rdbuf();
     outputFile.close();
 
-    auto stop = std::chrono::high_resolution_clock::now();
+    stop = std::chrono::high_resolution_clock::now();
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     std::cout << duration.count() << std::endl;
 
     std::cout << "DONE" <<std::endl;
