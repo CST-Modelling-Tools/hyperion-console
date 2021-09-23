@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymin(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymax(), sizeof(double));
 
-    std::vector<hypl::Heliostat>& heliostats = ideal_efficiency_map.heliostats();
+    std::vector<hypl::Heliostat> const& heliostats = ideal_efficiency_map.heliostats();
 
     for (auto& element : heliostats)
     {
