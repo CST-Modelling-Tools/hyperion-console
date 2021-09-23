@@ -30,9 +30,7 @@ int main(int argc, char *argv[])
 
     hypl::Atmosphere atmosphere;
 
-    int delta_days = 1;
-
-    hypl::Environment environment(location, atmosphere, delta_days);
+    hypl::Environment environment(location, atmosphere);
 
     std::cout << "\nDefining the boundaries...  \n";
     hypl::Boundaries boundaries;
@@ -63,7 +61,12 @@ int main(int argc, char *argv[])
         std::cout << element.aiming_point() << std::endl;
         i++;
     }
-   std::cout << std::endl;
+    std::cout << std::endl;
+
+    std::cout << std::endl;
+    double delta_t;
+    std::cout << "Please, enter delta_t in seconds:";
+    std::cin >> delta_t;
 
 // Generating the output
     std::string filename;
@@ -89,7 +92,7 @@ int main(int argc, char *argv[])
     auto start = std::chrono::high_resolution_clock::now();
 
     hypl::IdealEfficiencyMap ideal_efficiency_map(environment, boundaries, receivers, nrows, ncolumns);    
-    ideal_efficiency_map.EvaluateAnnualEfficiencies();
+    ideal_efficiency_map.EvaluateAnnualEfficiencies(hypl::Heliostat::IdealEfficiencyType::CosineAndTransmittance, delta_t);
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -105,11 +108,11 @@ int main(int argc, char *argv[])
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymin(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymax(), sizeof(double));
 
-    std::vector<hypl::Heliostat*>& heliostats = ideal_efficiency_map.heliostats();
+    std::vector<hypl::Heliostat>& heliostats = ideal_efficiency_map.heliostats();
 
     for (auto& element : heliostats)
     {
-        double annual_ideal_efficiency = element->annual_ideal_efficiency();
+        double annual_ideal_efficiency = element.m_annual_ideal_efficiency;
         outputFile.write((char *) &annual_ideal_efficiency, sizeof(double));
     }
     outputFile.close();

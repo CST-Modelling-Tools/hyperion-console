@@ -8,7 +8,7 @@ enable_testing()
 include_directories(
     ../hyperion-library/include)
 
-link_directories(../hyperion-library/build/MinSizeRel)
+link_directories(../hyperion-library/build/RelWithDebInfo)
 
 add_executable(hyperionconsole main.cpp)
 
