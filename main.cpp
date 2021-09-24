@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
     std::cout << "Please, enter the height of the center of the receiver:";
     std::cin >> receiver_height;
     std::vector<hypl::Receiver> receivers;
-    receivers.push_back(hypl::Receiver(hypl::vec3d(0.0, 0.0, receiver_height)));
+    double receiver_radius = 5.0;
+    receivers.push_back(hypl::Receiver(hypl::vec3d(0.0, 0.0, receiver_height), receiver_radius));
 
     std::cout << "Heliostat field environment created \n\n";
     std::cout << "-- Location parameters:" <<std::endl;
@@ -107,6 +108,8 @@ int main(int argc, char *argv[])
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().xmax(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymin(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymax(), sizeof(double));
+
+    std::cout << "Entering writing loop... \n";   
 
     std::vector<hypl::Heliostat> const& heliostats = ideal_efficiency_map.heliostats();
 
