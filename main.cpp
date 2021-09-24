@@ -24,76 +24,59 @@ int main(int argc, char *argv[])
     std::cout << "Creating environment...  \n";
  
     double latitude_degree;
-    std::cout << "Please enter the latitude of the location in degree North: ";
+    std::cout << "Please enter LATITUDE (DEGREE NORTH): ";
     std::cin >> latitude_degree;
+
     hypl::Location location(latitude_degree * hypl::mathconstants::degree);
-
     hypl::Atmosphere atmosphere;
-
     hypl::Environment environment(location, atmosphere);
 
-    std::cout << "\nDefining the boundaries...  \n";
     hypl::Boundaries boundaries;
 
-    std::cout << "\nDefining the receiver...  \n";
-
     double receiver_height;
-    std::cout << "Please, enter the height of the center of the receiver:";
+    std::cout << "Please, enter AIMING POINT HEIGHT (METERS):";
     std::cin >> receiver_height;
+
+    double receiver_radius;
+    std::cout << "Please, enter RECEIVER RADIUS (METERS):";
+    std::cin >> receiver_radius;
+
     std::vector<hypl::Receiver> receivers;
-    double receiver_radius = 5.0;
     receivers.push_back(hypl::Receiver(hypl::vec3d(0.0, 0.0, receiver_height), receiver_radius));
 
-    std::cout << "Heliostat field environment created \n\n";
-    std::cout << "-- Location parameters:" <<std::endl;
-    std::cout << "---- Latitude (degree North): " << environment.location().LatitudeDegree() <<std::endl <<std::endl;
-
-    std::cout << "-- Atmosphere parameters:" << std::endl;
-    std::cout << "---- Io: " << environment.atmosphere().io() << std::endl;
-    std::cout << "---- beta: " << environment.atmosphere().beta() << std::endl << std::endl;
-
-    std::cout << "-- Receivers:" <<std::endl;
-    std::cout << "---- Number of receivers: " << receivers.size() << std::endl;
-
-    int i = 0;
-    for (auto& element : receivers)
-    {
-        std::cout << "------ Aiming point of receiver (" << i << "): ";
-        std::cout << element.aiming_point() << std::endl;
-        i++;
-    }
-    std::cout << std::endl;
-
-    std::cout << std::endl;
     double delta_t;
-    std::cout << "Please, enter delta_t in seconds:";
+    std::cout << "Please, enter DELTA_T (SECONDS):";
     std::cin >> delta_t;
 
-// Generating the output
+    int nrows, ncolumns;
+
+    std::cout << "Please, enter NUMBER OF ROWS: ";
+    std::cin >> nrows;
+
+    std::cout << "Please, enter NUMBER OF COLUMNS: ";
+    std::cin >> ncolumns;
+
     std::string filename;
-    std::cout << "Please, input the name of the output file: ";
+    std::cout << "Please, enter OUTPUT FILE NAME: ";
     std::cin >> filename;
 
     std::ofstream outputFile;
     outputFile.open (filename, std::ios::out | std::ios::app | std::ios::binary);
 
+    int int_efficiency_type;
+    std::cout << "Please, enter EFFICIENCY TYPE [1, 2, 3]: ";
+    std::cin >> int_efficiency_type;
 
-    int nrows, ncolumns;
-
-    std::cout << "Please, input the number of rows: ";
-    std::cin >> nrows;
-
-    std::cout << "Please, input the number of columns: ";
-    std::cin >> ncolumns;
-
-    std::cout << "Dimensions: " << nrows << ", " << ncolumns << "\n";
-
+    hypl::Heliostat::IdealEfficiencyType ideal_efficiency_type;
+    if( int_efficiency_type == 1 ) ideal_efficiency_type = hypl::Heliostat::IdealEfficiencyType::CosineOnly;
+    else if( int_efficiency_type == 2 ) ideal_efficiency_type = hypl::Heliostat::IdealEfficiencyType::CosineAndTransmittance;
+    else ideal_efficiency_type = hypl::Heliostat::IdealEfficiencyType::AllFactors;
 
     std::cout << "Computing annual heliostat efficiencies... \n";
     auto start = std::chrono::high_resolution_clock::now();
 
     hypl::IdealEfficiencyMap ideal_efficiency_map(environment, boundaries, receivers, nrows, ncolumns);    
-    ideal_efficiency_map.EvaluateAnnualEfficiencies(hypl::Heliostat::IdealEfficiencyType::CosineAndTransmittance, delta_t);
+    ideal_efficiency_map.EvaluateAnnualEfficiencies(ideal_efficiency_type, delta_t);
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -108,8 +91,6 @@ int main(int argc, char *argv[])
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().xmax(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymin(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymax(), sizeof(double));
-
-    std::cout << "Entering writing loop... \n";   
 
     std::vector<hypl::Heliostat> const& heliostats = ideal_efficiency_map.heliostats();
 
