@@ -18,13 +18,13 @@
 
 int main(int argc, char *argv[])
 {
-    // application
+    // Terminal application
 
     std::cout << "----- BASIC CONSOLE PROJECT -----" << std::endl << std::endl;
     std::cout << "Creating environment...  \n";
  
     double latitude_degree;
-    std::cout << "Please enter LATITUDE (DEGREE NORTH): ";
+    std::cout << "Please, enter LATITUDE (DEGREE NORTH): ";
     std::cin >> latitude_degree;
 
     hypl::Location location(latitude_degree * hypl::mathconstants::degree);
@@ -61,10 +61,10 @@ int main(int argc, char *argv[])
     std::cin >> filename;
 
     std::ofstream outputFile;
-    outputFile.open (filename, std::ios::out | std::ios::app | std::ios::binary);
+    outputFile.open (filename, std::ios::out | std::ios::app | std::ios::binary);   
 
     int int_efficiency_type;
-    std::cout << "Please, enter EFFICIENCY TYPE [1, 2, 3]: ";
+    std::cout << "Please, enter EFFICIENCY TYPE [1: Cosine only, 2: Cosine + Attenuation, 3: All factors]: ";
     std::cin >> int_efficiency_type;
 
     hypl::Heliostat::IdealEfficiencyType ideal_efficiency_type;
@@ -80,10 +80,26 @@ int main(int argc, char *argv[])
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-    std::cout << duration.count() << std::endl;
+    std::cout << duration.count()/60000000. << " minutes" << std::endl;
 
-    std::cout << "Writing binary output file... \n";   
+    std::cout << "Writing binary output file... \n";
+    
     start = std::chrono::high_resolution_clock::now();
+
+    outputFile.write( (char *) &ideal_efficiency_map.environment().location().latitude(), sizeof(double));
+    outputFile.write( (char *) &ideal_efficiency_map.environment().atmosphere().beta(), sizeof(double));
+    outputFile.write( (char *) &ideal_efficiency_map.environment().atmosphere().io(), sizeof(double));
+    outputFile.write( (char *) ideal_efficiency_map.environment().atmosphere().TransmittanceModelName(), 4);
+
+    int n_receivers = ideal_efficiency_map.receivers().size();
+    outputFile.write( (char *)  &n_receivers,sizeof(int));
+    for (int j=0; j<n_receivers; j++)
+    {
+        outputFile.write( (char *) &ideal_efficiency_map.receivers().at(j).aiming_point().x, sizeof(double));
+        outputFile.write( (char *) &ideal_efficiency_map.receivers().at(j).aiming_point().y, sizeof(double));
+        outputFile.write( (char *) &ideal_efficiency_map.receivers().at(j).aiming_point().z, sizeof(double));
+        outputFile.write( (char *) &ideal_efficiency_map.receivers().at(j).radius(), sizeof(double));
+    }
 
     outputFile.write( (char *) &ideal_efficiency_map.nrows(), sizeof(int));
     outputFile.write( (char *) &ideal_efficiency_map.ncolumns(), sizeof(int));
@@ -91,6 +107,24 @@ int main(int argc, char *argv[])
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().xmax(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymin(), sizeof(double));
     outputFile.write( (char *) &ideal_efficiency_map.boundaries().ymax(), sizeof(double));
+
+    char * ideal_efficiency_name;
+    switch ( ideal_efficiency_type )
+    {
+        case hypl::Heliostat::IdealEfficiencyType::CosineOnly:
+            ideal_efficiency_name = "Cosine Only\0";
+            break;
+        case hypl::Heliostat::IdealEfficiencyType::CosineAndTransmittance:
+            ideal_efficiency_name = "Cosine and Attenuation\0";
+            break;
+        case hypl::Heliostat::IdealEfficiencyType::AllFactors:
+            ideal_efficiency_name = "All Factors\0";
+            break;
+        default:
+            ideal_efficiency_name = "Not Defined\0";
+            break;
+    }
+    outputFile.write( (char *) ideal_efficiency_name, strlen(ideal_efficiency_name)+1);
 
     std::vector<hypl::Heliostat> const& heliostats = ideal_efficiency_map.heliostats();
 
