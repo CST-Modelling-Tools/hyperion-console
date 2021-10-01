@@ -8,7 +8,7 @@ enable_testing()
 include_directories(
     ../hyperion-library/include)
 
-link_directories(../hyperion-library/build/RelWithDebInfo)
+link_directories(../hyperion-library/build/Release)
 
 add_executable(hyperionconsole main.cpp)
 
