@@ -72,9 +72,9 @@ int main(int argc, char *argv[])
 
 
 
-    for (int lat=10; lat < 61; lat=lat+10)
+    for (int lat=30; lat < 31; lat=lat+10) // change to deal only with lat = 30 Degree North.
     {
-       for (int th=20; th < 1001; th=th+10)
+       for (int th=800; th < 801; th=th+10) // change to deal only with th = 800 meters.
        {
            for (int rec_rad=1; rec_rad < 13.1; rec_rad=rec_rad+1)
            {
@@ -82,24 +82,24 @@ int main(int argc, char *argv[])
                 double latitude_degree=lat;
                 double receiver_radius=rec_rad;
 
-                int nrows=600;
-                int ncolumns=250;
+                int nrows=3000;
+                int ncolumns=1000;
                 double ymax=2000.;
                 double ymin=-1000.;
-                double delta_t=225.;
+                double delta_t=60.;
                 int int_efficiency_type=3;
                 std::cout << "Resolution: " << (ymax-ymin)/nrows << std::endl;
                 std::string filename="Efficiency-AllFactors_";
                 filename.append("Lat-").append(std::to_string((int) lat)).append("_");
                 filename.append("TH-").append(std::to_string((int) th)).append("_");
                 filename.append("RecRadius-").append(std::to_string((int) rec_rad)).append("_");
-                filename.append("Resolution-5x5").append(".dat");
+                filename.append("Resolution-60sec-1x1").append(".dat");
 
                 hypl::Location location(latitude_degree * hypl::mathconstants::degree);
                 hypl::Atmosphere atmosphere;
                 hypl::Environment environment(location, atmosphere);
 
-                hypl::Boundaries boundaries(-1250.,0.,ymin,ymax);
+                hypl::Boundaries boundaries(-1000.,0.,ymin,ymax);
 
                 std::vector<hypl::Receiver> receivers;
                 receivers.push_back(hypl::Receiver(hypl::vec3d(0.0, 0.0, receiver_height), receiver_radius));
